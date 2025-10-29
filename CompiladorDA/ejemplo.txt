@@ -1,0 +1,6 @@
+ANALIZAR DATOS "datos.csv"
+FILTRAR WHERE edad > 25
+AGRUPAR POR departamento
+CALCULAR promedio(salario), suma(ventas)
+GRAFICAR tipo=barras eje_x=departamento eje_y=salario
+GUARDAR COMO "resultado.csv"

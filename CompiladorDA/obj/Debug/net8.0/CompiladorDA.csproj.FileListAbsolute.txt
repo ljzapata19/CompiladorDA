@@ -1,0 +1,16 @@
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.AssemblyInfoInputs.cache
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.AssemblyInfo.cs
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.csproj.CoreCompileInputs.cache
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\CompiladorDA.exe
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\CompiladorDA.deps.json
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\CompiladorDA.runtimeconfig.json
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\CompiladorDA.dll
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\CompiladorDA.pdb
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.dll
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\refint\CompiladorDA.dll
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.pdb
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.genruntimeconfig.cache
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\ref\CompiladorDA.dll
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\datos.csv
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\ejemplo.txt
