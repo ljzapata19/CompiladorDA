@@ -207,14 +207,63 @@ private StringBuilder pythonCode;
 	}
 
 	void GraficarDatos() {
+		string tipoGrafico = "", ejeX = "", ejeY = ""; 
 		Expect(11);
 		Expect(28);
 		Expect(29);
-		if (la.kind == 17 || la.kind == 18) {
-			GraficoNormal();
+		if (la.kind == 17) {
+			Get();
+			tipoGrafico = "bar"; 
+		} else if (la.kind == 18) {
+			Get();
+			tipoGrafico = "line"; 
 		} else if (la.kind == 19) {
-			GraficoDispersion();
+			Get();
+			tipoGrafico = "scatter"; 
 		} else SynErr(34);
+		pythonCode.AppendLine("resultado = resultado.reset_index()");
+		
+		// ✅ MANEJAR DIFERENTES TIPOS DE GRÁFICOS
+		if (tipoGrafico == "scatter") {
+		   pythonCode.AppendLine("# Gráfico de dispersión");
+		   pythonCode.Append("plt.scatter(x=resultado['");
+		} else {
+		   pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "', x='");
+		}
+		
+		if (la.kind == 30) {
+			Get();
+			Expect(29);
+			Expect(1);
+			ejeX = t.val; 
+			pythonCode.Append(ejeX); 
+		}
+		if (tipoGrafico == "scatter") {
+		   pythonCode.Append("'], y=resultado['");
+		} else {
+		   pythonCode.Append("', y='");
+		}
+		
+		if (la.kind == 31) {
+			Get();
+			Expect(29);
+			Expect(1);
+			ejeY = t.val; 
+			pythonCode.Append(ejeY); 
+		}
+		if (tipoGrafico == "scatter") {
+		   pythonCode.AppendLine("'])");
+		} else {
+		   pythonCode.AppendLine("')");
+		}
+		
+		pythonCode.AppendLine("plt.title('Resultados del Análisis')");
+		pythonCode.AppendLine("plt.xlabel('" + ejeX + "')");
+		pythonCode.AppendLine("plt.ylabel('" + ejeY + "')");
+		pythonCode.AppendLine("plt.tight_layout()");
+		pythonCode.AppendLine("plt.savefig('grafico.png')");
+		pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
+		
 	}
 
 	void GuardarResultado() {
@@ -275,70 +324,6 @@ private StringBuilder pythonCode;
 		col = t.val; 
 		pythonCode.Append("'" + col + "': '" + tipo + "'"); 
 		Expect(27);
-	}
-
-	void GraficoNormal() {
-		string tipoGrafico = "", ejeX = "", ejeY = ""; 
-		if (la.kind == 17) {
-			Get();
-			tipoGrafico = "bar"; 
-		} else if (la.kind == 18) {
-			Get();
-			tipoGrafico = "line"; 
-		} else SynErr(38);
-		pythonCode.AppendLine("resultado = resultado.reset_index()");
-		pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "'"); 
-		
-		if (la.kind == 30) {
-			Get();
-			Expect(29);
-			Expect(1);
-			ejeX = t.val; 
-			pythonCode.Append(", x='" + ejeX + "'"); 
-		}
-		if (la.kind == 31) {
-			Get();
-			Expect(29);
-			Expect(1);
-			ejeY = t.val; 
-			pythonCode.Append(", y='" + ejeY + "'"); 
-		}
-		pythonCode.AppendLine(")");
-		pythonCode.AppendLine("plt.title('Resultados del Análisis')");
-		pythonCode.AppendLine("plt.tight_layout()");
-		pythonCode.AppendLine("plt.savefig('grafico.png')");
-		pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
-		
-	}
-
-	void GraficoDispersion() {
-		string ejeX = "", ejeY = ""; 
-		Expect(19);
-		pythonCode.AppendLine("resultado = resultado.reset_index()");
-		pythonCode.AppendLine("# Gráfico de dispersión");
-		pythonCode.Append("plt.scatter(x=resultado['");
-		
-		if (la.kind == 30) {
-			Get();
-			Expect(29);
-			Expect(1);
-			ejeX = t.val; 
-			pythonCode.Append(ejeX + "'], y=resultado['"); 
-		}
-		if (la.kind == 31) {
-			Get();
-			Expect(29);
-			Expect(1);
-			ejeY = t.val; 
-			pythonCode.Append(ejeY + "'])"); 
-		}
-		pythonCode.AppendLine("plt.title('Gráfico de Dispersión')");
-		pythonCode.AppendLine("plt.xlabel('" + ejeX + "')");
-		pythonCode.AppendLine("plt.ylabel('" + ejeY + "')");
-		pythonCode.AppendLine("plt.tight_layout()");
-		pythonCode.AppendLine("plt.savefig('grafico.png')");
-		pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
-		
 	}
 
 
@@ -406,7 +391,6 @@ public class Errors {
 			case 35: s = "invalid Expression"; break;
 			case 36: s = "invalid Expression"; break;
 			case 37: s = "invalid Funcion"; break;
-			case 38: s = "invalid GraficoNormal"; break;
 
 			default: s = "error " + n; break;
 		}

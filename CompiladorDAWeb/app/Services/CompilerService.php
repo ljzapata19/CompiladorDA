@@ -100,95 +100,6 @@ class CompilerService
         ];
     }
 }
-//     public function compile($csvContent, $sourceCode)
-// {
-//     try {
-//         Generar nombres únicos para archivos temporales
-//         $timestamp = now()->timestamp;
-//         $csvFilename = "data_{$timestamp}.csv";
-//         $sourceFilename = "source_{$timestamp}.txt";
-//         $outputFilename = "output_{$timestamp}.py";
-//         $resultFilename = "resultado_{$timestamp}.csv";
-
-//         Rutas completas
-//         $csvPath = storage_path("app/uploads/{$csvFilename}");
-//         $sourcePath = storage_path("app/uploads/{$sourceFilename}");
-//         $outputPath = storage_path("app/uploads/{$outputFilename}");
-//         $resultPath = storage_path("app/uploads/{$resultFilename}");
-
-//         Guardar archivos temporales
-//         file_put_contents($csvPath, $csvContent);
-//         file_put_contents($sourcePath, $sourceCode);
-
-//         ✅ PASO 1: Reemplazar en el código fuente ANTES de compilar
-//         $sourceCode = str_replace('"datos.csv"', '"' . $csvFilename . '"', $sourceCode);
-//         $sourceCode = str_replace("'datos.csv'", "'" . $csvFilename . "'", $sourceCode);
-//         file_put_contents($sourcePath, $sourceCode);
-
-//         Log::info("Código fuente procesado. Archivo CSV: {$csvFilename}");
-
-//         Ejecutar compilador C#
-//         $compilerResult = $this->runCompiler($sourcePath);
-        
-//         if (!$compilerResult['success']) {
-//             return [
-//                 'success' => false,
-//                 'error' => 'Error en compilación: ' . $compilerResult['error'],
-//                 'compiler_output' => $compilerResult['output']
-//             ];
-//         }
-
-//         Buscar output.py generado
-//         $outputPath = $this->findOutputFile($outputPath);
-
-//         ✅ PASO 2: Reemplazar también en el código Python generado (por si acaso)
-//         if (file_exists($outputPath)) {
-//             $pythonCode = file_get_contents($outputPath);
-            
-//             Hacer múltiples reemplazos para cubrir todos los casos
-//             $pythonCode = str_replace('"datos.csv"', '"' . $csvFilename . '"', $pythonCode);
-//             $pythonCode = str_replace("'datos.csv'", "'" . $csvFilename . "'", $pythonCode);
-//             $pythonCode = str_replace('datos.csv', $csvFilename, $pythonCode);
-            
-//             file_put_contents($outputPath, $pythonCode);
-            
-//             Log::info("✅ Reemplazado 'datos.csv' por '{$csvFilename}' en el código Python");
-//             Log::info("Contenido Python después del reemplazo:");
-//             Log::info($pythonCode);
-//         } else {
-//             Log::warning("❌ output.py no encontrado para reemplazo");
-//         }
-
-//         Ejecutar Python
-//         $pythonResult = $this->runPython($outputPath, $resultPath);
-        
-//         if (!$pythonResult['success']) {
-//             return [
-//                 'success' => false,
-//                 'error' => 'Error en ejecución Python: ' . $pythonResult['error'],
-//                 'python_output' => $pythonResult['output']
-//             ];
-//         }
-
-//         Leer resultado
-//         $resultData = $this->readCsvResult($resultPath);
-
-//         return [
-//             'success' => true,
-//             'result_data' => $resultData,
-//             'result_file' => $resultFilename,
-//             'compiler_output' => $compilerResult['output'],
-//             'python_output' => $pythonResult['output']
-//         ];
-
-//     } catch (\Exception $e) {
-//         Log::error('Error en compilación: ' . $e->getMessage());
-//         return [
-//             'success' => false,
-//             'error' => 'Error del sistema: ' . $e->getMessage()
-//         ];
-//     }
-// }
     private function runCompiler($sourcePath, $timestamp)
 {
     $compilerPath = config('services.compiler.path');
@@ -240,41 +151,6 @@ private function findOutputFile($expectedPath, $timestamp)
     Log::warning("❌ output.py NO encontrado en ninguna ubicación");
     return $expectedPath;
 }
-    // private function runCompiler($sourcePath)
-    // {
-    //     $compilerPath = config('services.compiler.path');
-    //     $projectPath = config('services.compiler.project');
-
-    //     // Verificar si el archivo .exe existe
-    //     if (!file_exists($compilerPath) && !Str::contains(strtolower($compilerPath), 'dotnet')) {
-    //         throw new \Exception("El compilador no se encuentra en: {$compilerPath}");
-    //     }
-
-    //     // Opción 1: Usar .exe directo
-    //     if (Str::contains(strtolower($compilerPath), '.exe')) {
-    //         $command = "\"{$compilerPath}\" \"{$sourcePath}\"";
-    //     }
-    //     // Opción 2: Usar dotnet run
-    //     elseif (Str::contains(strtolower($compilerPath), 'dotnet') && $projectPath) {
-    //         $command = "{$compilerPath} run --project \"{$projectPath}\" \"{$sourcePath}\"";
-    //     } 
-    //     else {
-    //         throw new \Exception("Configuración del compilador inválida");
-    //     }
-
-    //     \Log::info("Ejecutando compilador: {$command}");
-        
-    //     $process = Process::timeout(30)->run($command);
-
-    //     return [
-    //         'success' => $process->successful(),
-    //         'output' => $process->output() . "\n" . $process->errorOutput(),
-    //         'error' => $process->errorOutput()
-    //     ];
-    // }
-    /**
-     * Encuentra la ruta de Python
-     */
     private function findPythonPath()
     {
         $pythonPath = config('services.python.path');

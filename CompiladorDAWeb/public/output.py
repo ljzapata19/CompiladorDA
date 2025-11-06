@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 print('=== INICIANDO ANÁLISIS DE DATOS ===')
-resultado = pd.read_csv("data_1762443033.csv")
+resultado = pd.read_csv("data_1762457271.csv")
 print('Dataset cargado:', resultado.shape)
 print('Columnas:', list(resultado.columns))
 print('Primeras filas:')
@@ -9,6 +9,19 @@ print(resultado.head())
 
 resultado = resultado[resultado['edad'] > 25]
 print('Filtro aplicado. Nuevo shape:', resultado.shape)
+
+resultado = resultado.groupby(['departamento'])
+
+resultado = resultado.agg({'salario': 'mean', 'ventas': 'sum'})
+
+resultado = resultado.reset_index()
+resultado.plot(kind='bar', x='departamento', y='salario')
+plt.title('Resultados del Análisis')
+plt.xlabel('departamento')
+plt.ylabel('salario')
+plt.tight_layout()
+plt.savefig('grafico.png')
+print('Gráfico guardado como grafico.png')
 
 resultado.to_csv("resultado.csv")
 

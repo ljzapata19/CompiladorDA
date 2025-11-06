@@ -15,7 +15,7 @@
 <body>
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('index') }}">🧠 TranspilerWeb</a>
+            <a class="navbar-brand" href="{{ route('index') }}">TranspilerWeb</a>
         </div>
     </nav>
 

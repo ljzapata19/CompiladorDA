@@ -4,6 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 
 
+
 public class Parser {
 	public const int _EOF = 0;
 	public const int _ident = 1;
@@ -37,7 +38,6 @@ public class Parser {
 	public Token t;    // last recognized token
 	public Token la;   // lookahead token
 	int errDist = minErrDist;
-
 
 
 private StringBuilder pythonCode;
@@ -112,7 +112,7 @@ private StringBuilder pythonCode;
 			pythonCode.AppendLine(); 
 		}
 		pythonCode.AppendLine("print('=== ANÁLISIS COMPLETADO ===')");
-		pythonCode.AppendLine("print('DataFrame original:', df.shape)");
+		pythonCode.AppendLine("print('DataFrame original:', resultado.shape)");
 		pythonCode.AppendLine("if 'resultado' in locals():");
 		pythonCode.AppendLine("    print('Resultados calculados:')");
 		pythonCode.AppendLine("    print(resultado)");
@@ -159,41 +159,42 @@ private StringBuilder pythonCode;
 		string archivo = ""; 
 		Expect(4);
 		Expect(5);
-		pythonCode.Append("df = pd.read_csv("); 
+		pythonCode.Append("resultado = pd.read_csv("); 
 		Expect(3);
 		archivo = t.val; 
 		pythonCode.AppendLine(archivo + ")"); 
-		pythonCode.AppendLine("print('Dataset cargado:', df.shape)");
-		pythonCode.AppendLine("print('Columnas:', list(df.columns))");
+		// MOSTRAR INFORMACIÓN DEL DATASET
+		pythonCode.AppendLine("print('Dataset cargado:', resultado.shape)");
+		pythonCode.AppendLine("print('Columnas:', list(resultado.columns))");
 		pythonCode.AppendLine("print('Primeras filas:')");
-		pythonCode.AppendLine("print(df.head())"); 
+		pythonCode.AppendLine("print(resultado.head())"); 
 	}
 
 	void FiltrarDatos() {
 		string expr = ""; 
 		Expect(6);
 		Expect(7);
-		pythonCode.Append("df = df["); 
+		pythonCode.Append("resultado = resultado["); 
 		Expression();
 		pythonCode.AppendLine("]"); 
-		pythonCode.AppendLine("print('Filtro aplicado. Nuevo shape:', df.shape)"); 
+		// MOSTRAR FILTRO APLICADO
+		pythonCode.AppendLine("print('Filtro aplicado. Nuevo shape:', resultado.shape)"); 
 	}
 
 	void AgruparDatos() {
 		string columna = ""; 
 		Expect(8);
 		Expect(9);
-		pythonCode.Append("df_agrupado = df.groupby("); 
+		pythonCode.Append("resultado = resultado.groupby("); 
 		Expect(1);
 		columna = t.val; 
 		pythonCode.AppendLine("['" + columna + "'])"); 
-		pythonCode.AppendLine("print('Datos agrupados por:', '" + columna + "')"); 
 	}
 
 	void CalcularDatos() {
 		int count = 0; 
 		Expect(10);
-		pythonCode.Append("resultado = df_agrupado.agg({"); 
+		pythonCode.Append("resultado = resultado.agg({"); 
 		Funcion();
 		count++; 
 		while (la.kind == 25) {
@@ -203,8 +204,6 @@ private StringBuilder pythonCode;
 			count++; 
 		}
 		pythonCode.AppendLine("})"); 
-		pythonCode.AppendLine("print('=== RESULTADOS CALCULADOS ===')");
-		pythonCode.AppendLine("print(resultado)"); 
 	}
 
 	void GraficarDatos() {
@@ -222,23 +221,17 @@ private StringBuilder pythonCode;
 		string archivo = ""; 
 		Expect(12);
 		Expect(13);
-		pythonCode.AppendLine("if 'resultado' in locals():");
-		pythonCode.Append("    resultado.to_csv(");
-		
+		pythonCode.Append("resultado.to_csv("); 
 		Expect(3);
 		archivo = t.val; 
-		pythonCode.AppendLine(archivo + ")");
-		pythonCode.AppendLine("    print('Resultados calculados guardados en: " + archivo + "')");
-		pythonCode.AppendLine("else:");
-		pythonCode.AppendLine("    df.to_csv('" + archivo + "')");
-		pythonCode.AppendLine("    print('DataFrame original/filtrado guardado en: " + archivo + "')"); 
+		pythonCode.AppendLine(archivo + ")"); 
 	}
 
 	void Expression() {
 		string columna = "", operador = "", valor = ""; 
 		Expect(1);
 		columna = t.val; 
-		pythonCode.Append("df['" + columna + "'] "); 
+		pythonCode.Append("resultado['" + columna + "'] "); 
 		if (la.kind == 20) {
 			Get();
 			operador = ">"; 
@@ -293,11 +286,8 @@ private StringBuilder pythonCode;
 			Get();
 			tipoGrafico = "line"; 
 		} else SynErr(38);
-		pythonCode.AppendLine("if 'resultado' in locals():");
-		pythonCode.AppendLine("    datos_grafico = resultado.reset_index()");
-		pythonCode.AppendLine("else:");
-		pythonCode.AppendLine("    datos_grafico = df.reset_index()");
-		pythonCode.Append("datos_grafico.plot(kind='" + tipoGrafico + "'"); 
+		pythonCode.AppendLine("resultado = resultado.reset_index()");
+		pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "'"); 
 		
 		if (la.kind == 30) {
 			Get();
@@ -324,19 +314,16 @@ private StringBuilder pythonCode;
 	void GraficoDispersion() {
 		string ejeX = "", ejeY = ""; 
 		Expect(19);
-		pythonCode.AppendLine("if 'resultado' in locals():");
-		pythonCode.AppendLine("    datos_grafico = resultado.reset_index()");
-		pythonCode.AppendLine("else:");
-		pythonCode.AppendLine("    datos_grafico = df.reset_index()");
+		pythonCode.AppendLine("resultado = resultado.reset_index()");
 		pythonCode.AppendLine("# Gráfico de dispersión");
-		pythonCode.Append("plt.scatter(x=datos_grafico['");
+		pythonCode.Append("plt.scatter(x=resultado['");
 		
 		if (la.kind == 30) {
 			Get();
 			Expect(29);
 			Expect(1);
 			ejeX = t.val; 
-			pythonCode.Append(ejeX + "'], y=datos_grafico['"); 
+			pythonCode.Append(ejeX + "'], y=resultado['"); 
 		}
 		if (la.kind == 31) {
 			Get();

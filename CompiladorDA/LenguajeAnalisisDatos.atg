@@ -135,52 +135,51 @@ Funcion
             pythonCode.Append("'" + col + "': '" + tipo + "'"); .)
   ")".
 
-  GraficarDatos
-= GRAFICAR "tipo" "=" 
-  ( GraficoNormal | GraficoDispersion ).
 
-GraficoNormal
+GraficarDatos
 = (. string tipoGrafico = "", ejeX = "", ejeY = ""; .)
-  ( BARRAS (. tipoGrafico = "bar"; .)
-  | LINEA  (. tipoGrafico = "line"; .)
+  GRAFICAR "tipo" "=" 
+  ( BARRAS     (. tipoGrafico = "bar"; .)
+  | LINEA      (. tipoGrafico = "line"; .)
+  | DISPERSION (. tipoGrafico = "scatter"; .)
   )
   (. 
      pythonCode.AppendLine("resultado = resultado.reset_index()");
-     pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "'"); 
+     
+     // ✅ MANEJAR DIFERENTES TIPOS DE GRÁFICOS
+     if (tipoGrafico == "scatter") {
+         pythonCode.AppendLine("# Gráfico de dispersión");
+         pythonCode.Append("plt.scatter(x=resultado['");
+     } else {
+         pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "', x='");
+     }
   .)
   ["eje_x" "=" ident (. ejeX = t.val; 
-                         pythonCode.Append(", x='" + ejeX + "'"); .)]
-  ["eje_y" "=" ident (. ejeY = t.val; 
-                         pythonCode.Append(", y='" + ejeY + "'"); .)]
+                         pythonCode.Append(ejeX); .)]
   (. 
-     pythonCode.AppendLine(")");
+     if (tipoGrafico == "scatter") {
+         pythonCode.Append("'], y=resultado['");
+     } else {
+         pythonCode.Append("', y='");
+     }
+  .)
+  ["eje_y" "=" ident (. ejeY = t.val; 
+                         pythonCode.Append(ejeY); .)]
+  (. 
+     // ✅ CERRAR CORRECTAMENTE
+     if (tipoGrafico == "scatter") {
+         pythonCode.AppendLine("'])");
+     } else {
+         pythonCode.AppendLine("')");
+     }
+     
      pythonCode.AppendLine("plt.title('Resultados del Análisis')");
-     pythonCode.AppendLine("plt.tight_layout()");
-     pythonCode.AppendLine("plt.savefig('grafico.png')");
-     pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
-  .).
-
-GraficoDispersion
-= (. string ejeX = "", ejeY = ""; .)
-  DISPERSION
-  (. 
-     pythonCode.AppendLine("resultado = resultado.reset_index()");
-     pythonCode.AppendLine("# Gráfico de dispersión");
-     pythonCode.Append("plt.scatter(x=resultado['");
-  .)
-  ["eje_x" "=" ident (. ejeX = t.val; 
-                         pythonCode.Append(ejeX + "'], y=resultado['"); .)]
-  ["eje_y" "=" ident (. ejeY = t.val; 
-                         pythonCode.Append(ejeY + "'])"); .)]
-  (. 
-     pythonCode.AppendLine("plt.title('Gráfico de Dispersión')");
      pythonCode.AppendLine("plt.xlabel('" + ejeX + "')");
      pythonCode.AppendLine("plt.ylabel('" + ejeY + "')");
      pythonCode.AppendLine("plt.tight_layout()");
      pythonCode.AppendLine("plt.savefig('grafico.png')");
      pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
   .).
-
 
 GuardarResultado
 = (. string archivo = ""; .)
