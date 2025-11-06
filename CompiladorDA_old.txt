@@ -1,0 +1,149 @@
+COMPILER LenguajeAnalisisDatos
+
+using System.Text;
+using System.Collections.Generic;
+
+private StringBuilder pythonCode;
+
+/* ===== CARACTERES Y CONJUNTOS ===== */
+CHARACTERS
+  letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  digit = "0123456789".
+  space = ' '.
+  cr = '\r'.
+  lf = '\n'.
+  tab = '\t'.
+  blancos = space + tab + cr + lf.
+  stringChar = ANY - '"' - '\r' - '\n'.
+  nl = cr + lf.
+  printable = ANY - cr - lf.
+
+/* ===== TOKENS ===== */
+TOKENS
+  ident = letter {letter | digit | "_"}.
+  number = digit {digit}.
+  string = '"' {stringChar} '"'.
+
+  ANALIZAR = "ANALIZAR".
+  DATOS = "DATOS".
+  FILTRAR = "FILTRAR".
+  WHERE = "WHERE".
+  AGRUPAR = "AGRUPAR".
+  POR = "POR".
+  CALCULAR = "CALCULAR".
+  GRAFICAR = "GRAFICAR".
+  GUARDAR = "GUARDAR".
+  COMO = "COMO".
+  PROMEDIO = "promedio".
+  SUMA = "suma".
+  COUNT = "count".
+  BARRAS = "barras".
+  LINEA = "linea".
+  DISPERSION = "dispersion".
+
+/* ===== IGNORAR ===== */
+IGNORE '\r' + '\n' + '\t' + ' '
+
+/* ===== PRODUCCIONES ===== */
+PRODUCTIONS
+
+LenguajeAnalisisDatos
+= (. pythonCode = new StringBuilder();
+     pythonCode.AppendLine("import pandas as pd");
+     pythonCode.AppendLine("import matplotlib.pyplot as plt"); .)
+  {Comando (. pythonCode.AppendLine(); .)} 
+  (. Console.WriteLine("=== CÓDIGO PYTHON GENERADO ===");
+     Console.WriteLine(pythonCode.ToString());
+     File.WriteAllText("output.py", pythonCode.ToString()); .).
+
+Comando = 
+    AnalizarDatos
+  | FiltrarDatos
+  | AgruparDatos
+  | CalcularDatos
+  | GraficarDatos
+  | GuardarResultado.
+
+AnalizarDatos
+= (. string archivo = ""; .)
+  ANALIZAR DATOS (. pythonCode.Append("df = pd.read_csv("); .)
+  string (. archivo = t.val; 
+             pythonCode.AppendLine(archivo + ")"); .).
+
+FiltrarDatos
+= (. string expr = ""; .)
+  FILTRAR WHERE (. pythonCode.Append("df = df["); .)
+  Expression (. pythonCode.AppendLine("]"); .).
+
+Expression
+= (. string columna = "", operador = "", valor = ""; .)
+  ident (. columna = t.val; 
+            pythonCode.Append("df['" + columna + "'] "); .)  // ← CAMBIA ESTA LÍNEA
+  ( ">"  (. operador = ">"; .)
+  | "<"  (. operador = "<"; .)
+  | ">=" (. operador = ">="; .)
+  | "<=" (. operador = "<="; .)
+  | "==" (. operador = "=="; .)
+  )
+  (. pythonCode.Append(operador + " "); .)
+  ( number (. valor = t.val; pythonCode.Append(valor); .)
+  | string (. valor = t.val; pythonCode.Append(valor); .)
+  ).
+
+AgruparDatos
+= (. string columna = ""; .)
+  AGRUPAR POR (. pythonCode.Append("df_agrupado = df.groupby("); .)
+  ident (. columna = t.val; 
+            pythonCode.AppendLine("['" + columna + "'])"); .).
+
+CalcularDatos
+= (. int count = 0; .)
+  CALCULAR (. pythonCode.Append("resultado = df_agrupado.agg({"); .)
+  Funcion (. count++; .)
+  {"," (. pythonCode.Append(", "); .) 
+  Funcion (. count++; .)
+  } 
+  (. pythonCode.AppendLine("})"); .).
+
+Funcion
+= (. string tipo = "", col = ""; .)
+  ( PROMEDIO (. tipo = "mean"; .)
+  | SUMA    (. tipo = "sum"; .)
+  | COUNT   (. tipo = "count"; .)
+  ) 
+  "(" 
+  ident (. col = t.val; 
+            pythonCode.Append("'" + col + "': '" + tipo + "'"); .)
+  ")".
+
+GraficarDatos
+= (. string tipoGrafico = "", ejeX = "", ejeY = ""; .)
+  GRAFICAR "tipo" "=" 
+  ( BARRAS     (. tipoGrafico = "bar"; .)
+  | LINEA      (. tipoGrafico = "line"; .)
+  | DISPERSION (. tipoGrafico = "scatter"; .)
+  )
+  (. 
+     pythonCode.AppendLine("resultado = resultado.reset_index()");
+     pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "'"); 
+  .)
+  ["eje_x" "=" ident (. ejeX = t.val; 
+                         pythonCode.Append(", x='" + ejeX + "'"); .)]
+  ["eje_y" "=" ident (. ejeY = t.val; 
+                         pythonCode.Append(", y='" + ejeY + "'"); .)]
+  (. 
+     pythonCode.AppendLine(")");
+     pythonCode.AppendLine("plt.title('Resultados del Análisis')");
+     pythonCode.AppendLine("plt.tight_layout()");
+     pythonCode.AppendLine("plt.savefig('grafico.png')");
+     pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
+  .).
+
+GuardarResultado
+= (. string archivo = ""; .)
+  GUARDAR COMO (. pythonCode.Append("resultado.to_csv("); .)
+  string (. archivo = t.val; 
+             pythonCode.AppendLine(archivo + ")"); .).
+
+/* ===== FIN ===== */
+END LenguajeAnalisisDatos.

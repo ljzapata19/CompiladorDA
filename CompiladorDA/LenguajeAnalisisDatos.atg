@@ -50,11 +50,23 @@ PRODUCTIONS
 LenguajeAnalisisDatos
 = (. pythonCode = new StringBuilder();
      pythonCode.AppendLine("import pandas as pd");
-     pythonCode.AppendLine("import matplotlib.pyplot as plt"); .)
+     pythonCode.AppendLine("import matplotlib.pyplot as plt"); 
+     pythonCode.AppendLine("print('=== INICIANDO ANÁLISIS DE DATOS ===')"); .)
   {Comando (. pythonCode.AppendLine(); .)} 
-  (. Console.WriteLine("=== CÓDIGO PYTHON GENERADO ===");
+  (. 
+     //  AGREGAR RESUMEN FINAL AUTOMÁTICO
+     pythonCode.AppendLine("print('=== ANÁLISIS COMPLETADO ===')");
+     pythonCode.AppendLine("print('DataFrame original:', resultado.shape)");
+     pythonCode.AppendLine("if 'resultado' in locals():");
+     pythonCode.AppendLine("    print('Resultados calculados:')");
+     pythonCode.AppendLine("    print(resultado)");
+     pythonCode.AppendLine("else:");
+     pythonCode.AppendLine("    print('No se calcularon resultados agrupados')");
+     
+     Console.WriteLine("=== CÓDIGO PYTHON GENERADO ===");
      Console.WriteLine(pythonCode.ToString());
-     File.WriteAllText("output.py", pythonCode.ToString()); .).
+     File.WriteAllText("output.py", pythonCode.ToString()); 
+  .).
 
 Comando = 
     AnalizarDatos
@@ -66,19 +78,26 @@ Comando =
 
 AnalizarDatos
 = (. string archivo = ""; .)
-  ANALIZAR DATOS (. pythonCode.Append("df = pd.read_csv("); .)
+  ANALIZAR DATOS (. pythonCode.Append("resultado = pd.read_csv("); .)
   string (. archivo = t.val; 
-             pythonCode.AppendLine(archivo + ")"); .).
+             pythonCode.AppendLine(archivo + ")"); 
+             // MOSTRAR INFORMACIÓN DEL DATASET
+             pythonCode.AppendLine("print('Dataset cargado:', resultado.shape)");
+             pythonCode.AppendLine("print('Columnas:', list(resultado.columns))");
+             pythonCode.AppendLine("print('Primeras filas:')");
+             pythonCode.AppendLine("print(resultado.head())"); .).
 
 FiltrarDatos
 = (. string expr = ""; .)
-  FILTRAR WHERE (. pythonCode.Append("df = df["); .)
-  Expression (. pythonCode.AppendLine("]"); .).
+  FILTRAR WHERE (. pythonCode.Append("resultado = resultado["); .)
+  Expression (. pythonCode.AppendLine("]"); 
+                 // MOSTRAR FILTRO APLICADO
+                 pythonCode.AppendLine("print('Filtro aplicado. Nuevo shape:', resultado.shape)"); .).
 
 Expression
 = (. string columna = "", operador = "", valor = ""; .)
   ident (. columna = t.val; 
-            pythonCode.Append("df['" + columna + "'] "); .)  // ← CAMBIA ESTA LÍNEA
+            pythonCode.Append("resultado['" + columna + "'] "); .)  // ← CAMBIA ESTA LÍNEA
   ( ">"  (. operador = ">"; .)
   | "<"  (. operador = "<"; .)
   | ">=" (. operador = ">="; .)
@@ -92,13 +111,13 @@ Expression
 
 AgruparDatos
 = (. string columna = ""; .)
-  AGRUPAR POR (. pythonCode.Append("df_agrupado = df.groupby("); .)
+  AGRUPAR POR (. pythonCode.Append("resultado = resultado.groupby("); .)
   ident (. columna = t.val; 
             pythonCode.AppendLine("['" + columna + "'])"); .).
 
 CalcularDatos
 = (. int count = 0; .)
-  CALCULAR (. pythonCode.Append("resultado = df_agrupado.agg({"); .)
+  CALCULAR (. pythonCode.Append("resultado = resultado.agg({"); .)
   Funcion (. count++; .)
   {"," (. pythonCode.Append(", "); .) 
   Funcion (. count++; .)
@@ -116,15 +135,16 @@ Funcion
             pythonCode.Append("'" + col + "': '" + tipo + "'"); .)
   ")".
 
-GraficarDatos
+  GraficarDatos
+= GRAFICAR "tipo" "=" 
+  ( GraficoNormal | GraficoDispersion ).
+
+GraficoNormal
 = (. string tipoGrafico = "", ejeX = "", ejeY = ""; .)
-  GRAFICAR "tipo" "=" 
-  ( BARRAS     (. tipoGrafico = "bar"; .)
-  | LINEA      (. tipoGrafico = "line"; .)
-  | DISPERSION (. tipoGrafico = "scatter"; .)
+  ( BARRAS (. tipoGrafico = "bar"; .)
+  | LINEA  (. tipoGrafico = "line"; .)
   )
   (. 
-     // === AGREGA ESTA LÍNEA ===
      pythonCode.AppendLine("resultado = resultado.reset_index()");
      pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "'"); 
   .)
@@ -132,8 +152,35 @@ GraficarDatos
                          pythonCode.Append(", x='" + ejeX + "'"); .)]
   ["eje_y" "=" ident (. ejeY = t.val; 
                          pythonCode.Append(", y='" + ejeY + "'"); .)]
-  (. pythonCode.AppendLine(")"); 
-     pythonCode.AppendLine("plt.show()"); .).
+  (. 
+     pythonCode.AppendLine(")");
+     pythonCode.AppendLine("plt.title('Resultados del Análisis')");
+     pythonCode.AppendLine("plt.tight_layout()");
+     pythonCode.AppendLine("plt.savefig('grafico.png')");
+     pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
+  .).
+
+GraficoDispersion
+= (. string ejeX = "", ejeY = ""; .)
+  DISPERSION
+  (. 
+     pythonCode.AppendLine("resultado = resultado.reset_index()");
+     pythonCode.AppendLine("# Gráfico de dispersión");
+     pythonCode.Append("plt.scatter(x=resultado['");
+  .)
+  ["eje_x" "=" ident (. ejeX = t.val; 
+                         pythonCode.Append(ejeX + "'], y=resultado['"); .)]
+  ["eje_y" "=" ident (. ejeY = t.val; 
+                         pythonCode.Append(ejeY + "'])"); .)]
+  (. 
+     pythonCode.AppendLine("plt.title('Gráfico de Dispersión')");
+     pythonCode.AppendLine("plt.xlabel('" + ejeX + "')");
+     pythonCode.AppendLine("plt.ylabel('" + ejeY + "')");
+     pythonCode.AppendLine("plt.tight_layout()");
+     pythonCode.AppendLine("plt.savefig('grafico.png')");
+     pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
+  .).
+
 
 GuardarResultado
 = (. string archivo = ""; .)

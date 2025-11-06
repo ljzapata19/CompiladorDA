@@ -30,13 +30,17 @@ public class Parser {
 	const bool _T = true;
 	const bool _x = false;
 	const int minErrDist = 2;
-    private StringBuilder pythonCode = new StringBuilder();
-    public Scanner scanner;
+	
+	public Scanner scanner;
 	public Errors  errors;
 
 	public Token t;    // last recognized token
 	public Token la;   // lookahead token
 	int errDist = minErrDist;
+
+
+
+private StringBuilder pythonCode;
 
 /* ===== CARACTERES Y CONJUNTOS ===== */
 
@@ -102,13 +106,23 @@ public class Parser {
 		pythonCode = new StringBuilder();
 		pythonCode.AppendLine("import pandas as pd");
 		pythonCode.AppendLine("import matplotlib.pyplot as plt"); 
+		pythonCode.AppendLine("print('=== INICIANDO ANÁLISIS DE DATOS ===')"); 
 		while (StartOf(1)) {
 			Comando();
 			pythonCode.AppendLine(); 
 		}
+		pythonCode.AppendLine("print('=== ANÁLISIS COMPLETADO ===')");
+		pythonCode.AppendLine("print('DataFrame original:', df.shape)");
+		pythonCode.AppendLine("if 'resultado' in locals():");
+		pythonCode.AppendLine("    print('Resultados calculados:')");
+		pythonCode.AppendLine("    print(resultado)");
+		pythonCode.AppendLine("else:");
+		pythonCode.AppendLine("    print('No se calcularon resultados agrupados')");
+		
 		Console.WriteLine("=== CÓDIGO PYTHON GENERADO ===");
 		Console.WriteLine(pythonCode.ToString());
 		File.WriteAllText("output.py", pythonCode.ToString()); 
+		
 	}
 
 	void Comando() {
@@ -149,6 +163,10 @@ public class Parser {
 		Expect(3);
 		archivo = t.val; 
 		pythonCode.AppendLine(archivo + ")"); 
+		pythonCode.AppendLine("print('Dataset cargado:', df.shape)");
+		pythonCode.AppendLine("print('Columnas:', list(df.columns))");
+		pythonCode.AppendLine("print('Primeras filas:')");
+		pythonCode.AppendLine("print(df.head())"); 
 	}
 
 	void FiltrarDatos() {
@@ -158,6 +176,7 @@ public class Parser {
 		pythonCode.Append("df = df["); 
 		Expression();
 		pythonCode.AppendLine("]"); 
+		pythonCode.AppendLine("print('Filtro aplicado. Nuevo shape:', df.shape)"); 
 	}
 
 	void AgruparDatos() {
@@ -168,6 +187,7 @@ public class Parser {
 		Expect(1);
 		columna = t.val; 
 		pythonCode.AppendLine("['" + columna + "'])"); 
+		pythonCode.AppendLine("print('Datos agrupados por:', '" + columna + "')"); 
 	}
 
 	void CalcularDatos() {
@@ -183,50 +203,35 @@ public class Parser {
 			count++; 
 		}
 		pythonCode.AppendLine("})"); 
+		pythonCode.AppendLine("print('=== RESULTADOS CALCULADOS ===')");
+		pythonCode.AppendLine("print(resultado)"); 
 	}
 
 	void GraficarDatos() {
-		string tipoGrafico = "", ejeX = "", ejeY = ""; 
 		Expect(11);
 		Expect(28);
 		Expect(29);
-		if (la.kind == 17) {
-			Get();
-			tipoGrafico = "bar"; 
-		} else if (la.kind == 18) {
-			Get();
-			tipoGrafico = "line"; 
+		if (la.kind == 17 || la.kind == 18) {
+			GraficoNormal();
 		} else if (la.kind == 19) {
-			Get();
-			tipoGrafico = "scatter"; 
+			GraficoDispersion();
 		} else SynErr(34);
-		pythonCode.Append("resultado.plot(kind='" + tipoGrafico + "'"); 
-		if (la.kind == 30) {
-			Get();
-			Expect(29);
-			Expect(1);
-			ejeX = t.val; 
-			pythonCode.Append(", x='" + ejeX + "'"); 
-		}
-		if (la.kind == 31) {
-			Get();
-			Expect(29);
-			Expect(1);
-			ejeY = t.val; 
-			pythonCode.Append(", y='" + ejeY + "'"); 
-		}
-		pythonCode.AppendLine(")"); 
-		pythonCode.AppendLine("plt.show()"); 
 	}
 
 	void GuardarResultado() {
 		string archivo = ""; 
 		Expect(12);
 		Expect(13);
-		pythonCode.Append("resultado.to_csv("); 
+		pythonCode.AppendLine("if 'resultado' in locals():");
+		pythonCode.Append("    resultado.to_csv(");
+		
 		Expect(3);
 		archivo = t.val; 
-		pythonCode.AppendLine(archivo + ")"); 
+		pythonCode.AppendLine(archivo + ")");
+		pythonCode.AppendLine("    print('Resultados calculados guardados en: " + archivo + "')");
+		pythonCode.AppendLine("else:");
+		pythonCode.AppendLine("    df.to_csv('" + archivo + "')");
+		pythonCode.AppendLine("    print('DataFrame original/filtrado guardado en: " + archivo + "')"); 
 	}
 
 	void Expression() {
@@ -277,6 +282,76 @@ public class Parser {
 		col = t.val; 
 		pythonCode.Append("'" + col + "': '" + tipo + "'"); 
 		Expect(27);
+	}
+
+	void GraficoNormal() {
+		string tipoGrafico = "", ejeX = "", ejeY = ""; 
+		if (la.kind == 17) {
+			Get();
+			tipoGrafico = "bar"; 
+		} else if (la.kind == 18) {
+			Get();
+			tipoGrafico = "line"; 
+		} else SynErr(38);
+		pythonCode.AppendLine("if 'resultado' in locals():");
+		pythonCode.AppendLine("    datos_grafico = resultado.reset_index()");
+		pythonCode.AppendLine("else:");
+		pythonCode.AppendLine("    datos_grafico = df.reset_index()");
+		pythonCode.Append("datos_grafico.plot(kind='" + tipoGrafico + "'"); 
+		
+		if (la.kind == 30) {
+			Get();
+			Expect(29);
+			Expect(1);
+			ejeX = t.val; 
+			pythonCode.Append(", x='" + ejeX + "'"); 
+		}
+		if (la.kind == 31) {
+			Get();
+			Expect(29);
+			Expect(1);
+			ejeY = t.val; 
+			pythonCode.Append(", y='" + ejeY + "'"); 
+		}
+		pythonCode.AppendLine(")");
+		pythonCode.AppendLine("plt.title('Resultados del Análisis')");
+		pythonCode.AppendLine("plt.tight_layout()");
+		pythonCode.AppendLine("plt.savefig('grafico.png')");
+		pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
+		
+	}
+
+	void GraficoDispersion() {
+		string ejeX = "", ejeY = ""; 
+		Expect(19);
+		pythonCode.AppendLine("if 'resultado' in locals():");
+		pythonCode.AppendLine("    datos_grafico = resultado.reset_index()");
+		pythonCode.AppendLine("else:");
+		pythonCode.AppendLine("    datos_grafico = df.reset_index()");
+		pythonCode.AppendLine("# Gráfico de dispersión");
+		pythonCode.Append("plt.scatter(x=datos_grafico['");
+		
+		if (la.kind == 30) {
+			Get();
+			Expect(29);
+			Expect(1);
+			ejeX = t.val; 
+			pythonCode.Append(ejeX + "'], y=datos_grafico['"); 
+		}
+		if (la.kind == 31) {
+			Get();
+			Expect(29);
+			Expect(1);
+			ejeY = t.val; 
+			pythonCode.Append(ejeY + "'])"); 
+		}
+		pythonCode.AppendLine("plt.title('Gráfico de Dispersión')");
+		pythonCode.AppendLine("plt.xlabel('" + ejeX + "')");
+		pythonCode.AppendLine("plt.ylabel('" + ejeY + "')");
+		pythonCode.AppendLine("plt.tight_layout()");
+		pythonCode.AppendLine("plt.savefig('grafico.png')");
+		pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
+		
 	}
 
 
@@ -344,6 +419,7 @@ public class Errors {
 			case 35: s = "invalid Expression"; break;
 			case 36: s = "invalid Expression"; break;
 			case 37: s = "invalid Funcion"; break;
+			case 38: s = "invalid GraficoNormal"; break;
 
 			default: s = "error " + n; break;
 		}

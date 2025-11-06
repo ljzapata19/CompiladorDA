@@ -14,3 +14,4 @@ C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\Compilado
 C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\ref\CompiladorDA.dll
 C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\datos.csv
 C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\bin\Debug\net8.0\ejemplo.txt
+C:\Users\ljzap\source\repos\CompiladorDA\CompiladorDA\obj\Debug\net8.0\CompiladorDA.sourcelink.json
