@@ -7,13 +7,23 @@
     <div class="col-12">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h4 class="mb-0">📈 Resultados del Análisis</h4>
-                <div>
-                    <a href="{{ route('index') }}" class="btn btn-outline-secondary">
-                        🔄 Nuevo Análisis
+            <h4 class="mb-0">📈 Resultados del Análisis</h4>
+          <div>
+                @if(session('timestamp'))
+                    <a href="{{ route('show.python.code', ['timestamp' => session('timestamp')]) }}" class="btn btn-outline-secondary">
+                        🐍 Ver Código Python
                     </a>
-                </div>
+                @else
+                    <button class="btn btn-outline-secondary" disabled title="No hay código Python disponible">
+                        🐍 Ver Código Python
+                    </button>
+                @endif
+                
+                <a href="{{ route('index') }}" class="btn btn-outline-secondary">
+                    🔄 Nuevo Análisis
+                </a>
             </div>
+        </div>
             <div class="card-body">
                 @if(session('success'))
                     <div class="alert alert-success">
@@ -27,7 +37,14 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5>📊 Tabla de Resultados</h5>
-                        
+                         <!-- BOTÓN PARA DESCARGAR CSV -->
+                            @if(session('result_file'))
+                                <a href="{{ route('download.csv', ['filename' => session('result_file')]) }}" 
+                                   class="btn btn-success btn-sm">
+                                    📥 Descargar CSV
+                                </a>
+                            @endif
+                            
                         <!-- @if(session('graph_path'))
                             <a href="{{ route('show.graph', ['filename' => session('graph_path')]) }}" 
                             class="btn btn-primary" 

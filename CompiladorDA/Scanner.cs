@@ -305,7 +305,7 @@ public class Scanner {
 			case "ANALIZAR": t.kind = 4; break;
 			case "DATOS": t.kind = 5; break;
 			case "FILTRAR": t.kind = 6; break;
-			case "WHERE": t.kind = 7; break;
+			case "DONDE": t.kind = 7; break;
 			case "AGRUPAR": t.kind = 8; break;
 			case "POR": t.kind = 9; break;
 			case "CALCULAR": t.kind = 10; break;

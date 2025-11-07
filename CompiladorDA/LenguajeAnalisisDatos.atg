@@ -4,6 +4,7 @@ using System.Text;
 using System.Collections.Generic;
 
 private StringBuilder pythonCode;
+private string csvFileName = "datos.csv";  // ← VARIABLE PARA EL NOMBRE DEL CSV
 
 /* ===== CARACTERES Y CONJUNTOS ===== */
 CHARACTERS
@@ -27,7 +28,7 @@ TOKENS
   ANALIZAR = "ANALIZAR".
   DATOS = "DATOS".
   FILTRAR = "FILTRAR".
-  WHERE = "WHERE".
+  DONDE = "DONDE".
   AGRUPAR = "AGRUPAR".
   POR = "POR".
   CALCULAR = "CALCULAR".
@@ -54,7 +55,12 @@ LenguajeAnalisisDatos
      pythonCode.AppendLine("print('=== INICIANDO ANÁLISIS DE DATOS ===')"); .)
   {Comando (. pythonCode.AppendLine(); .)} 
   (. 
-     //  AGREGAR RESUMEN FINAL AUTOMÁTICO
+     // ✅ GUARDAR RESULTADO AUTOMÁTICAMENTE CON TIMESTAMP
+     pythonCode.AppendLine("# Guardar resultado automáticamente");
+     pythonCode.AppendLine("resultado.to_csv('resultado.csv')");
+     pythonCode.AppendLine("print('Resultados guardados automáticamente en resultado.csv')");
+     
+     // AGREGAR RESUMEN FINAL AUTOMÁTICO
      pythonCode.AppendLine("print('=== ANÁLISIS COMPLETADO ===')");
      pythonCode.AppendLine("print('DataFrame original:', resultado.shape)");
      pythonCode.AppendLine("if 'resultado' in locals():");
@@ -68,6 +74,7 @@ LenguajeAnalisisDatos
      File.WriteAllText("output.py", pythonCode.ToString()); 
   .).
 
+
 Comando = 
     AnalizarDatos
   | FiltrarDatos
@@ -76,20 +83,24 @@ Comando =
   | GraficarDatos
   | GuardarResultado.
 
+
+
 AnalizarDatos
-= (. string archivo = ""; .)
-  ANALIZAR DATOS (. pythonCode.Append("resultado = pd.read_csv("); .)
-  string (. archivo = t.val; 
-             pythonCode.AppendLine(archivo + ")"); 
-             // MOSTRAR INFORMACIÓN DEL DATASET
-             pythonCode.AppendLine("print('Dataset cargado:', resultado.shape)");
-             pythonCode.AppendLine("print('Columnas:', list(resultado.columns))");
-             pythonCode.AppendLine("print('Primeras filas:')");
-             pythonCode.AppendLine("print(resultado.head())"); .).
+= (. 
+     // ✅ CAMBIO PRINCIPAL: No esperar el string, usar csvFileName directamente
+     pythonCode.Append("resultado = pd.read_csv(\"" + csvFileName + "\")"); 
+     pythonCode.AppendLine();
+     // MOSTRAR INFORMACIÓN DEL DATASET
+     pythonCode.AppendLine("print('Dataset cargado:', resultado.shape)");
+     pythonCode.AppendLine("print('Columnas:', list(resultado.columns))");
+     pythonCode.AppendLine("print('Primeras filas:')");
+     pythonCode.AppendLine("print(resultado.head())"); 
+  .)
+  ANALIZAR DATOS.  // ← SOLO ESTOS TOKENS, SIN STRING
 
 FiltrarDatos
 = (. string expr = ""; .)
-  FILTRAR WHERE (. pythonCode.Append("resultado = resultado["); .)
+  FILTRAR DONDE (. pythonCode.Append("resultado = resultado["); .)
   Expression (. pythonCode.AppendLine("]"); 
                  // MOSTRAR FILTRO APLICADO
                  pythonCode.AppendLine("print('Filtro aplicado. Nuevo shape:', resultado.shape)"); .).
@@ -180,6 +191,9 @@ GraficarDatos
      pythonCode.AppendLine("plt.savefig('grafico.png')");
      pythonCode.AppendLine("print('Gráfico guardado como grafico.png')");
   .).
+
+
+
 
 GuardarResultado
 = (. string archivo = ""; .)

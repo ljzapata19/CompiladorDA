@@ -90,6 +90,7 @@ class CompilerService
             'compiler_output' => $compilerResult['output'],
             'python_output' => $pythonResult['output'],
             'timestamp' => $timestamp // ← Para referencia
+            
         ];
 
     } catch (\Exception $e) {
@@ -184,8 +185,7 @@ private function findOutputFile($expectedPath, $timestamp)
         
         throw new \Exception("No se pudo encontrar Python. Verifica que esté instalado.");
     }
-
-    private function runPython($outputPath, $resultPath, $graphPath, $timestamp)
+private function runPython($outputPath, $resultPath, $graphPath, $timestamp)
 {
     $pythonPath = $this->findPythonPath();
     
@@ -212,23 +212,81 @@ private function findOutputFile($expectedPath, $timestamp)
     $output = mb_convert_encoding($process->output(), 'UTF-8', 'UTF-8');
     $errorOutput = mb_convert_encoding($process->errorOutput(), 'UTF-8', 'UTF-8');
 
-    // ✅ VERIFICAR AMBOS ARCHIVOS CON EL TIMESTAMP CORRECTO
-    $hasResult = file_exists($resultPath);
+    // ✅ VERIFICACIÓN MEJORADA: 
+    // Buscar resultado.csv (generado automáticamente) O el archivo específico
+    $autoResultPath = storage_path("app/uploads/resultado.csv");
+    $hasAutoResult = file_exists($autoResultPath);
+    $hasSpecificResult = file_exists($resultPath);
     $hasGraph = file_exists($graphPath);
-    $pythonSuccess = $process->successful() && ($hasResult || $hasGraph);
+    
+    // Si se generó resultado.csv automático, renombrarlo con timestamp
+    if ($hasAutoResult && !$hasSpecificResult) {
+        $newResultPath = storage_path("app/uploads/resultado_{$timestamp}.csv");
+        rename($autoResultPath, $newResultPath);
+        $hasSpecificResult = true;
+        Log::info("✅ Archivo resultado.csv automático renombrado a: resultado_{$timestamp}.csv");
+    }
+
+    $pythonSuccess = $process->successful() && ($hasSpecificResult || $hasGraph);
 
     Log::info("Verificación de archivos:");
-    Log::info("- Resultado: " . ($hasResult ? "✅ {$resultPath}" : "❌ No encontrado"));
+    Log::info("- Resultado automático: " . ($hasAutoResult ? "✅" : "❌"));
+    Log::info("- Resultado específico: " . ($hasSpecificResult ? "✅ {$resultPath}" : "❌ No encontrado"));
     Log::info("- Gráfico: " . ($hasGraph ? "✅ {$graphPath}" : "❌ No encontrado"));
+    Log::info("- Python exitoso: " . ($process->successful() ? "SI" : "NO"));
 
     return [
         'success' => $pythonSuccess,
         'output' => $output . "\n" . $errorOutput,
         'error' => $errorOutput,
-        'has_result' => $hasResult,
+        'has_result' => $hasSpecificResult,
         'has_graph' => $hasGraph
     ];
 }
+//     private function runPython($outputPath, $resultPath, $graphPath, $timestamp)
+// {
+//     $pythonPath = $this->findPythonPath();
+    
+//     $workingDir = storage_path('app/uploads');
+    
+//     $env = [
+//         'HOME' => $workingDir,
+//         'USERPROFILE' => $workingDir,
+//         'HOMEPATH' => $workingDir,
+//         'MATPLOTLIBRC' => $workingDir,
+//         'MPLCONFIGDIR' => $workingDir,
+//         'PYTHONIOENCODING' => 'utf-8',
+//     ];
+
+//     $command = "cd \"{$workingDir}\" && \"{$pythonPath}\" \"" . basename($outputPath) . "\"";
+
+//     Log::info("Ejecutando Python: {$command}");
+    
+//     $process = Process::timeout(60)
+//                      ->path($workingDir)
+//                      ->env($env)
+//                      ->run($command);
+
+//     $output = mb_convert_encoding($process->output(), 'UTF-8', 'UTF-8');
+//     $errorOutput = mb_convert_encoding($process->errorOutput(), 'UTF-8', 'UTF-8');
+
+//     // ✅ VERIFICAR AMBOS ARCHIVOS CON EL TIMESTAMP CORRECTO
+//     $hasResult = file_exists($resultPath);
+//     $hasGraph = file_exists($graphPath);
+//     $pythonSuccess = $process->successful() && ($hasResult || $hasGraph);
+
+//     Log::info("Verificación de archivos:");
+//     Log::info("- Resultado: " . ($hasResult ? "✅ {$resultPath}" : "❌ No encontrado"));
+//     Log::info("- Gráfico: " . ($hasGraph ? "✅ {$graphPath}" : "❌ No encontrado"));
+
+//     return [
+//         'success' => $pythonSuccess,
+//         'output' => $output . "\n" . $errorOutput,
+//         'error' => $errorOutput,
+//         'has_result' => $hasResult,
+//         'has_graph' => $hasGraph
+//     ];
+// }
     private function readCsvResult($filePath)
     {
         if (!file_exists($filePath)) {

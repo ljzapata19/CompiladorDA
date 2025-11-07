@@ -12,7 +12,7 @@ public class Parser {
 	public const int _ANALIZAR = 4;
 	public const int _DATOS = 5;
 	public const int _FILTRAR = 6;
-	public const int _WHERE = 7;
+	public const int _DONDE = 7;
 	public const int _AGRUPAR = 8;
 	public const int _POR = 9;
 	public const int _CALCULAR = 10;
@@ -41,6 +41,7 @@ public class Parser {
 
 
 private StringBuilder pythonCode;
+private string csvFileName = "datos.csv";  // ← VARIABLE PARA EL NOMBRE DEL CSV
 
 /* ===== CARACTERES Y CONJUNTOS ===== */
 
@@ -111,6 +112,11 @@ private StringBuilder pythonCode;
 			Comando();
 			pythonCode.AppendLine(); 
 		}
+		pythonCode.AppendLine("# Guardar resultado automáticamente");
+		pythonCode.AppendLine("resultado.to_csv('resultado.csv')");
+		pythonCode.AppendLine("print('Resultados guardados automáticamente en resultado.csv')");
+		
+		// AGREGAR RESUMEN FINAL AUTOMÁTICO
 		pythonCode.AppendLine("print('=== ANÁLISIS COMPLETADO ===')");
 		pythonCode.AppendLine("print('DataFrame original:', resultado.shape)");
 		pythonCode.AppendLine("if 'resultado' in locals():");
@@ -156,18 +162,16 @@ private StringBuilder pythonCode;
 	}
 
 	void AnalizarDatos() {
-		string archivo = ""; 
-		Expect(4);
-		Expect(5);
-		pythonCode.Append("resultado = pd.read_csv("); 
-		Expect(3);
-		archivo = t.val; 
-		pythonCode.AppendLine(archivo + ")"); 
+		pythonCode.Append("resultado = pd.read_csv(\"" + csvFileName + "\")"); 
+		pythonCode.AppendLine();
 		// MOSTRAR INFORMACIÓN DEL DATASET
 		pythonCode.AppendLine("print('Dataset cargado:', resultado.shape)");
 		pythonCode.AppendLine("print('Columnas:', list(resultado.columns))");
 		pythonCode.AppendLine("print('Primeras filas:')");
 		pythonCode.AppendLine("print(resultado.head())"); 
+		
+		Expect(4);
+		Expect(5);
 	}
 
 	void FiltrarDatos() {
@@ -360,7 +364,7 @@ public class Errors {
 			case 4: s = "ANALIZAR expected"; break;
 			case 5: s = "DATOS expected"; break;
 			case 6: s = "FILTRAR expected"; break;
-			case 7: s = "WHERE expected"; break;
+			case 7: s = "DONDE expected"; break;
 			case 8: s = "AGRUPAR expected"; break;
 			case 9: s = "POR expected"; break;
 			case 10: s = "CALCULAR expected"; break;
