@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title') - TranspilerWeb</title>
+    <title>Nexus - @yield('title') </title>
+    <link rel="icon" href="{{ asset('img/logo.png') }}" type="image/png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .container { max-width: 1200px; }
@@ -15,7 +16,13 @@
 <body>
     <nav class="navbar navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('index') }}">TranspilerWeb</a>
+            <!-- <img src="{{ asset('img/logo.png') }}" alt="Nexus Logo" height="30" class="me-2">
+            <a class="navbar-brand mb-0 h1" href="{{ route('index') }}">NEXUS</a> -->
+             <div class="navbar-brand d-flex align-items-center">
+                <img src="{{ asset('img/logo.png') }}" alt="Nexus Logo" height="30" class="me-2">
+                
+                <a class="mb-1 text-white text-decoration-none fw-bold ms-3" href="{{ route('index') }}">NEXUS</a>
+            </div>
         </div>
     </nav>
 

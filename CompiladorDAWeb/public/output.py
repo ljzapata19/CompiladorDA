@@ -7,23 +7,23 @@ print('Columnas:', list(resultado.columns))
 print('Primeras filas:')
 print(resultado.head())
 
-resultado = resultado[resultado['provincia'] == "Mendoza"]
+resultado = resultado[resultado['edad'] > 25]
 print('Filtro aplicado. Nuevo shape:', resultado.shape)
 
-resultado = resultado.groupby(['mes'])
+resultado = resultado.groupby(['departamento'])
 
-resultado = resultado.agg({'toneladas': 'sum'})
+resultado = resultado.agg({'salario': 'mean', 'ventas': 'sum'})
 
 resultado = resultado.reset_index()
-resultado.plot(kind='line', x='mes', y='toneladas')
+resultado.plot(kind='bar', x='departamento', y='salario')
 plt.title('Resultados del Análisis')
-plt.xlabel('mes')
-plt.ylabel('toneladas')
+plt.xlabel('departamento')
+plt.ylabel('salario')
 plt.tight_layout()
 plt.savefig('grafico.png')
 print('Gráfico guardado como grafico.png')
 
-resultado.to_csv("produccion_mendoza.csv")
+resultado.to_csv("resultado.csv")
 
 # Guardar resultado automáticamente
 resultado.to_csv('resultado.csv')

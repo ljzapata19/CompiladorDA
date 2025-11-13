@@ -64,7 +64,7 @@ GUARDAR COMO "resultado.csv"') }}</textarea>
 
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg">
-                            🚀 Compilar y Ejecutar
+                            Compilar y Ejecutar
                         </button>
                     </div>
                 </form>
@@ -73,27 +73,36 @@ GUARDAR COMO "resultado.csv"') }}</textarea>
                     <h5>📚 Ejemplo de Uso:</h5>
                     <div class="card">
                         <div class="card-body">
-                            <h6>Archivo CSV (datos.csv):</h6>
-                            <pre class="code-area">nombre,edad,departamento,salario,ventas
+                            <div class="row">
+                                <!-- Archivo CSV -->
+                                <div class="col-md-6">
+                                    <h6>Archivo CSV (datos.csv):</h6>
+                                    <pre class="code-area">nombre,edad,departamento,salario,ventas
 Juan,30,Ventas,50000,150000
 Maria,28,Marketing,45000,120000
 Carlos,35,Ventas,55000,200000
 Ana,22,Marketing,40000,80000
 Luis,40,Ventas,60000,250000</pre>
-                            
-                            <h6 class="mt-3">Comandos (source.txt):</h6>
-                            <pre class="code-area">ANALIZAR DATOS 
+                                </div>
+                                
+                                <!-- Comandos -->
+                                <div class="col-md-6">
+                                    <h6>Comandos (source.txt):</h6>
+                                    <pre class="code-area">ANALIZAR DATOS 
 FILTRAR DONDE edad > 25
 AGRUPAR POR departamento
 CALCULAR promedio(salario), suma(ventas)
 GRAFICAR tipo=barras eje_x=departamento eje_y=salario
 GUARDAR COMO "resultado.csv"</pre>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+    
 </div>
 @endsection
 @php
