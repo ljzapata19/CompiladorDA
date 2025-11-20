@@ -57,7 +57,22 @@ class CompilerController extends Controller
             // ✅ AGREGAR LOG PARA DEBUG (AHORA FUNCIONARÁ)
             Log::info("Redirigiendo a result con timestamp: " . $result['timestamp']);
             Log::info("Graph path: " . ($graphPublicFilename ?? 'null'));
+            
+            // Agregar columna id a los datos resultantes         
+            if (!empty($result['result_data']) && is_array($result['result_data'])) {
+                foreach ($result['result_data'] as $i => &$row) {
 
+                    // Si el parser o pandas agregó un índice numérico vacío, lo borramos
+                    if (array_key_exists('', $row)) {
+                        unset($row['']);
+                    }
+
+                    // Agregar columna id al inicio
+                    $row = array_merge(['id' => $i + 1], $row);
+                }
+                unset($row);
+            }
+            
             return redirect()->route('result')->with([
                 'success' => true,
                 'result_data' => $result['result_data'],
